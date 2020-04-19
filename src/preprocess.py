@@ -10,6 +10,7 @@ import torch
 from transformers import BertTokenizer
 
 from dataset import BertDataset
+import torch.utils.data as Data
 
 def process_samples(tokenizer, samples):
     processeds = []
@@ -41,9 +42,9 @@ def process_samples(tokenizer, samples):
 
     return processeds
 
-def create_dataset(samples, save_path, config, padding=0):
+def create_dataset(samples, save_path, config, tokenizer):
     dataset = BertDataset(
-        samples, padding=padding,
+        samples, tokenizer=tokenizer,
         max_context_len=config.get('max_context_len') or 300,
         max_question_len=config.get('max_question_len') or 80
     )
@@ -65,29 +66,28 @@ def main1(args):
     tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
     processeds = process_samples(tokenizer, train[0]['data'])
 
-    with open(args.output_dir / 'train.pkl', 'wb') as f:
-        pickle.dump(processeds, f)
-
-def main2(args):
-    with open(args.output_dir / 'config.json') as f:
-        config = json.load(f)
-
-    tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
-
-    with open(args.output_dir / 'train.pkl', 'rb') as f:
-        A = pickle.load(f)
-    #print(A)
     create_dataset(
-        A, args.output_dir/'temp.pkl', 
+        processeds, args.output_dir/'train.pkl', 
         config, 
-        tokenizer.pad_token
+        tokenizer
     )
 
+    #with open(args.output_dir / 'train.pkl', 'wb') as f:
+    #    pickle.dump(processeds, f)
+
 def main(args):
-    with open(args.output_dir / 'temp.pkl', 'rb') as f:
+    with open(args.output_dir / 'train.pkl', 'rb') as f:
         A = pickle.load(f)
 
-    print(A[0])
+    loader = Data.DataLoader(
+        dataset=A,
+        batch_size=2,
+        collate_fn=A.collate_fn
+    )
+    #print(A[0])
+    for batch in loader:
+        print(batch)
+        exit(0)
 
 def _parse_args():
     parser = argparse.ArgumentParser()
