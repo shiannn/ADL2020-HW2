@@ -85,9 +85,12 @@ def main(args):
         collate_fn=A.collate_fn
     )
     #print(A[0])
-    for batch in loader:
-        print(batch)
-        exit(0)
+    for idx, batch in enumerate(loader):
+        print(len(batch['sequence'][0]))
+        print(len(batch['sequence'][1]))
+        if idx == 40:
+            print(batch['sequence'])
+            exit(0)
 
 def _parse_args():
     parser = argparse.ArgumentParser()

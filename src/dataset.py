@@ -50,7 +50,7 @@ class BertDataset(Dataset):
                 [self.cls_token_id]+sample['context']+[self.sep_token_id]+ 
                 sample['question'] +[self.sep_token_id] for sample in samples
             ],
-            to_len, self.pad_token
+            to_len, self.pad_token_id
         )
         batch['sequence'] = padded
         
