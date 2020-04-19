@@ -1,0 +1,7 @@
+{
+    "train": "./data/train.json", 
+    "dev": "./data/dev.json",
+    "test": "./data/test.json",
+    "max_context_len": 300,
+    "max_question_len": 74
+}
