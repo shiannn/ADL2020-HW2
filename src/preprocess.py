@@ -36,7 +36,8 @@ def process_samples(tokenizer, samples):
                     )
                     processed['answersStart'] = ans['answer_start']
                 if 'answerable' in qas:
-                    processed['answerable'] = qas['answerable']
+                    #processed['answerable'] = qas['answerable']
+                    processed['answerable'] = 1 if qas['answerable'] == True else 0
                 
                 processeds.append(processed)
 
@@ -51,7 +52,7 @@ def create_dataset(samples, save_path, config, tokenizer):
     with open(save_path, 'wb') as f:
         pickle.dump(dataset, f)
 
-def main1(args):
+def main(args):
     logging.info('Creating train dataset...')
     with open(args.output_dir / 'config.json') as f:
         config = json.load(f)
@@ -66,8 +67,18 @@ def main1(args):
     tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
     processeds = process_samples(tokenizer, train[0]['data'])
 
+    logging.info('Creating train dataset...')
     create_dataset(
         processeds, args.output_dir/'train.pkl', 
+        config, 
+        tokenizer
+    )
+
+    processeds = process_samples(tokenizer, valid[0]['data'])
+    
+    logging.info('Creating valid dataset...')
+    create_dataset(
+        processeds, args.output_dir/'valid.pkl', 
         config, 
         tokenizer
     )
@@ -75,7 +86,7 @@ def main1(args):
     #with open(args.output_dir / 'train.pkl', 'wb') as f:
     #    pickle.dump(processeds, f)
 
-def main(args):
+def main2(args):
     with open(args.output_dir / 'train.pkl', 'rb') as f:
         A = pickle.load(f)
 

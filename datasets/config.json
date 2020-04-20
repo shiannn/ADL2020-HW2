@@ -3,5 +3,7 @@
     "dev": "./data/dev.json",
     "test": "./data/test.json",
     "max_context_len": 300,
-    "max_question_len": 74
+    "max_question_len": 74,
+    "training": "../datasets/train.pkl",
+    "checkpoint": "./checkpoint/"
 }

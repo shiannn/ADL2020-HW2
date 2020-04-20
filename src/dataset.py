@@ -6,6 +6,7 @@ class BertDataset(Dataset):
     def __init__(self, data, tokenizer=None, max_context_len=300, max_question_len=80):
         self.data = data
 
+        self.tokenizer = tokenizer
         self.pad_token = tokenizer.pad_token
         self.cls_token = tokenizer.cls_token
         self.sep_token = tokenizer.sep_token
@@ -26,8 +27,8 @@ class BertDataset(Dataset):
     def __getitem__(self, index):
         return {
             'id': self.data[index]['id'],
-            'context': self.data[index]['context'][:self.max_context_len],
-            'question': self.data[index]['question'][:self.max_question_len],
+            'context': self.data[index]['context'],
+            'question': self.data[index]['question'],
             'answersId': self.data[index]['answersId'],
             'answersText': self.data[index]['answersText'],
             'answersStart': self.data[index]['answersStart'],
@@ -39,12 +40,14 @@ class BertDataset(Dataset):
         for key in ['id', 'answersId', 'answersStart', 'answerable']:
             batch[key] = [sample[key] for sample in samples]
 
-        ### key == 'context' 'question'
+        ### key == 'context' 'question' ###
+        #to_len = 500
         to_len = max([
                 len(sample['context'])+len(sample['question'])+3
                 for sample in samples
             ])
-
+        to_len = min(512, to_len)
+        """
         padded = pad_to_len(
             [
                 [self.cls_token_id]+sample['context']+[self.sep_token_id]+ 
@@ -52,6 +55,24 @@ class BertDataset(Dataset):
             ],
             to_len, self.pad_token_id
         )
-        batch['sequence'] = padded
+        """
+        batch['input_ids'] = []
+        batch['token_type_ids'] = []
+        batch['attention_mask'] = []
+        for sample in samples:
+            #print(sample['question'])
+            retDict = self.tokenizer.prepare_for_model(sample['context'], sample['question'], max_length=to_len, truncation_strategy='only_first', pad_to_max_length=True)
+            #print(retDict.keys())
+            batch['input_ids'].append(retDict['input_ids'])
+            batch['token_type_ids'].append(retDict['token_type_ids'])
+            batch['attention_mask'].append(retDict['attention_mask'])
+        """
+        padded = [
+            self.tokenizer.prepare_for_model(sample['context'], sample['question'], max_length=to_len,
+            truncation_strategy='only_first', pad_to_max_length=True) for sample in samples
+        ]
+        """
+        #print(padded)
+        #batch['sequence'] = padded
         
         return batch
