@@ -30,14 +30,14 @@ class BertDataset(Dataset):
             'context': self.data[index]['context'],
             'question': self.data[index]['question'],
             'answersId': self.data[index]['answersId'],
-            'answersText': self.data[index]['answersText'],
-            'answersStart': self.data[index]['answersStart'],
+            'answer_Tokens_Start': self.data[index]['answer_Tokens_Start'],
+            'answer_Tokens_End': self.data[index]['answer_Tokens_End'],
             'answerable': self.data[index]['answerable']
         }
     
     def collate_fn(self, samples):
         batch = {}
-        for key in ['id', 'answersId', 'answersStart', 'answerable']:
+        for key in ['id', 'answersId', 'answer_Tokens_Start', 'answer_Tokens_End', 'answerable']:
             batch[key] = [sample[key] for sample in samples]
 
         ### key == 'context' 'question' ###
@@ -46,7 +46,8 @@ class BertDataset(Dataset):
                 len(sample['context'])+len(sample['question'])+3
                 for sample in samples
             ])
-        to_len = min(512, to_len)
+        #to_len = min(512, to_len)
+        to_len = 512
         """
         padded = pad_to_len(
             [
@@ -61,7 +62,7 @@ class BertDataset(Dataset):
         batch['attention_mask'] = []
         for sample in samples:
             #print(sample['question'])
-            retDict = self.tokenizer.prepare_for_model(sample['context'], sample['question'], max_length=to_len, truncation_strategy='only_first', pad_to_max_length=True)
+            retDict = self.tokenizer.prepare_for_model(sample['context'], sample['question'], max_length=to_len, truncation_strategy='only_first', pad_to_max_length=True, add_special_tokens=True)
             #print(retDict.keys())
             batch['input_ids'].append(retDict['input_ids'])
             batch['token_type_ids'].append(retDict['token_type_ids'])

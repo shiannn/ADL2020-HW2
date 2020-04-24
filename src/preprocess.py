@@ -27,6 +27,10 @@ def process_samples(tokenizer, samples):
                         tokenizer.tokenize(qas['question'])
                     )
                 }
+                if 'answerable' in qas:
+                    #processed['answerable'] = qas['answerable']
+                    processed['answerable'] = 1 if qas['answerable'] == True else 0
+
                 if 'answers' in qas:
                     ans = qas['answers'][0]
                     processed['answersId'] = ans['id']
@@ -38,12 +42,12 @@ def process_samples(tokenizer, samples):
                     answersStart = ans['answer_start']
                     processed['answer_Tokens_Start'] = len(
                         tokenizer.tokenize(paragraph['context'][:answersStart])
-                    )
+                    ) if processed['answerable'] == 1 else -1
+
                     processed['answer_Tokens_End'] =\
-                    processed['answer_Tokens_Start']+len(tokenizer.tokenize(ans['text'])) 
-                if 'answerable' in qas:
-                    #processed['answerable'] = qas['answerable']
-                    processed['answerable'] = 1 if qas['answerable'] == True else 0
+                    processed['answer_Tokens_Start']+len(tokenizer.tokenize(ans['text']))\
+                    if processed['answerable'] == 1 else -1
+                
                 """
                 print('context')
                 print(paragraph['context'])
