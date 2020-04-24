@@ -19,8 +19,14 @@ logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 EPOCH = 3
 BATCHSIZE = 8
 
-def tokens2word(tokens, tokenizer):
-    ret = tokenizer.convert_ids_to_tokens(tokens)
+if torch.cuda.is_available():
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+def tokens2word(tokens_batch, tokenizer):
+    ret = []
+    for tokens in tokens_batch:
+        tokens = torch.tensor(tokens).to(device)
+        ret.append(tokenizer.convert_ids_to_tokens(tokens))
     return ret
 
 def countClassNum(training):
@@ -34,8 +40,7 @@ def countClassNum(training):
             zeroNum += 1
     return zeroNum, oneNum
 
-if torch.cuda.is_available():
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 if __name__=='__main__':
     with open('../datasets/config.json') as f:
@@ -86,29 +91,48 @@ if __name__=='__main__':
             #print('context_mask', context_mask)
             ### context length
             context_Length = (context_mask==1).sum(dim=1)
-            print('context_Length', context_Length)
+            #print('context_Length', context_Length)
             ### using context length to see if answerable after truncated
 
             X = torch.tensor(X).to(device)
+            ### print token
+            ansToken = batch['answersText']
+            #print('ansToken', ansToken)
+            ansWords = tokens2word(ansToken, tokenizer)
+            #context_words = tokens2word(X, tokenizer)
+            print(ansWords)
+
             Y_answerable = batch['answerable']
             Y_answerable = torch.tensor(Y_answerable, dtype=torch.float).to(device)
             Y_start = batch['answer_Tokens_Start']
-
             Y_start = torch.tensor(Y_start, dtype=torch.float).to(device)
             Y_end = batch['answer_Tokens_End']
             Y_end = torch.tensor(Y_end, dtype=torch.float).to(device)
+
+            check = []
+            for x, yst, yed in zip(X, Y_start, Y_end):
+                #print(yst, yed)
+                stt = int(yst.item())
+                edd = int(yed.item())
+                #print(x[stt:edd])
+                check.append(tokenizer.convert_ids_to_tokens(x[stt:edd]))
+                
+            print(check)
+            #ans_word = tokens2word(X[:,Y_start:Y_end], tokenizer)
+            #print(ans_word)
         
+            ### mask the loss when end is out of context
             mask_st_ed = Y_end > context_Length
             igSted = torch.ones(Y_start.shape)* -1.
             igSted = igSted.to(device)
             Y_start = torch.where(mask_st_ed, igSted, Y_start).to(torch.long)
             Y_end = torch.where(mask_st_ed,igSted , Y_end).to(torch.long)
             ### make it unanswerable
-            print(Y_answerable)
-            print('mask_st_ed', mask_st_ed)
+            #print(Y_answerable)
+            #print('mask_st_ed', mask_st_ed)
             unans = torch.zeros(Y_answerable.shape).to(device, dtype=torch.float)
             Y_answerable = torch.where(mask_st_ed, unans , Y_answerable)
-            print(Y_answerable)
+            #print(Y_answerable)
 
             #print(Y_start)
             #print(Y_end)

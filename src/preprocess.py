@@ -35,14 +35,14 @@ def process_samples(tokenizer, samples):
                     ans = qas['answers'][0]
                     processed['answersId'] = ans['id']
 
-                    #processed['answersText'] = tokenizer.convert_tokens_to_ids(
-                    #    tokenizer.tokenize(ans['text'])
-                    #)
+                    processed['answersText'] = tokenizer.convert_tokens_to_ids(
+                        tokenizer.tokenize(ans['text'])
+                    )
                     #processed['answersStart'] = ans['answer_start']
                     answersStart = ans['answer_start']
                     processed['answer_Tokens_Start'] = len(
                         tokenizer.tokenize(paragraph['context'][:answersStart])
-                    ) if processed['answerable'] == 1 else -1
+                    )+1 if processed['answerable'] == 1 else -1
 
                     processed['answer_Tokens_End'] =\
                     processed['answer_Tokens_Start']+len(tokenizer.tokenize(ans['text']))\

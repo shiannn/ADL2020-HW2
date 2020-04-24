@@ -30,6 +30,7 @@ class BertDataset(Dataset):
             'context': self.data[index]['context'],
             'question': self.data[index]['question'],
             'answersId': self.data[index]['answersId'],
+            'answersText': self.data[index]['answersText'],
             'answer_Tokens_Start': self.data[index]['answer_Tokens_Start'],
             'answer_Tokens_End': self.data[index]['answer_Tokens_End'],
             'answerable': self.data[index]['answerable']
@@ -37,7 +38,7 @@ class BertDataset(Dataset):
     
     def collate_fn(self, samples):
         batch = {}
-        for key in ['id', 'answersId', 'answer_Tokens_Start', 'answer_Tokens_End', 'answerable']:
+        for key in ['id', 'answersId', 'answersText', 'answer_Tokens_Start', 'answer_Tokens_End', 'answerable']:
             batch[key] = [sample[key] for sample in samples]
 
         ### key == 'context' 'question' ###
