@@ -16,12 +16,13 @@ if torch.cuda.is_available():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 if __name__ == '__main__':
-    if(len(sys.argv)!=3):
-        print('usage: python3 predict.py TestingData.pkl predict.json')
+    if(len(sys.argv)!=4):
+        print('usage: python3 predict.py model.pt TestingData.pkl predict.json')
         exit(0)
     
-    testDataName = sys.argv[1]
-    predictName = sys.argv[2]
+    modelName = sys.argv[1]
+    testDataName = sys.argv[2]
+    predictName = sys.argv[3]
 
     with open('../datasets/config.json') as f:
         config = json.load(f)
@@ -34,10 +35,9 @@ if __name__ == '__main__':
         batch_size=BATCHSIZE,
         collate_fn=A.collate_fn
     )
-    #model = BertLinear()
     model = BertLinear.from_pretrained('bert-base-chinese')
 
-    modelName = config["checkpoint"] + 'BertLinear1000.pt'
+    #modelName = config["checkpoint"] + 'BertLinear1000.pt'
 
     model.load_state_dict(torch.load(modelName))
     model = model.to(device)

@@ -31,16 +31,30 @@ def process_samples(tokenizer, samples):
                     ans = qas['answers'][0]
                     processed['answersId'] = ans['id']
 
-                    processed['answersText'] = tokenizer.convert_tokens_to_ids(
-                        tokenizer.tokenize(ans['text'])
+                    #processed['answersText'] = tokenizer.convert_tokens_to_ids(
+                    #    tokenizer.tokenize(ans['text'])
+                    #)
+                    #processed['answersStart'] = ans['answer_start']
+                    answersStart = ans['answer_start']
+                    processed['answer_Tokens_Start'] = len(
+                        tokenizer.tokenize(paragraph['context'][:answersStart])
                     )
-                    processed['answersStart'] = ans['answer_start']
+                    processed['answer_Tokens_End'] =\
+                    processed['answer_Tokens_Start']+len(tokenizer.tokenize(ans['text'])) 
                 if 'answerable' in qas:
                     #processed['answerable'] = qas['answerable']
                     processed['answerable'] = 1 if qas['answerable'] == True else 0
-                
+                """
+                print('context')
+                print(paragraph['context'])
+                print('-----')
+                print(qas['answers'])
+                print(processed)
+                print(processed['context'][processed['answer_Tokens_Start']:processed['answer_Tokens_End']])
+                print(tokenizer.convert_ids_to_tokens(processed['context'][processed['answer_Tokens_Start']:processed['answer_Tokens_End']]))
+                """
                 processeds.append(processed)
-
+        #exit(0)
     return processeds
 
 def create_dataset(samples, save_path, config, tokenizer):

@@ -6,13 +6,18 @@ import json
 import pickle
 from tqdm import tqdm
 
+import logging
 import torch
 from transformers import BertTokenizer
 
 from dataset import BertDataset
 import torch.utils.data as Data
 
+FORMAT = '%(asctime)s %(levelname)s: %(message)s'
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+
 def main(args):
+    logging.info('loading model!')
     with open(args.output_dir / 'train.pkl', 'rb') as f:
         A = pickle.load(f)
 
@@ -22,6 +27,7 @@ def main(args):
         collate_fn=A.collate_fn
     )
     #print(A[0])
+    logging.info('loading tokenizer!')
     tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
     for idx, batch in enumerate(loader):
         #print(len(batch['sequence'][0]))

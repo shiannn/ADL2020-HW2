@@ -3,13 +3,17 @@ import torch.nn as nn
 import torch.optim as optim
 import pickle
 import json
+import logging
 import torch.utils.data as Data
 from dataset import BertDataset
 from BertLinear import BertLinear
 from transformers import BertTokenizer, AdamW, get_linear_schedule_with_warmup
 
+FORMAT = '%(asctime)s %(levelname)s: %(message)s'
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+
 EPOCH = 1
-BATCHSIZE = 3
+BATCHSIZE = 8
 
 def countClassNum(training):
     zeroNum = 0
@@ -43,6 +47,7 @@ if __name__=='__main__':
         collate_fn=A.collate_fn
     )
     #print(A[0])
+    logging.info('loading model!')
     model = BertLinear.from_pretrained('bert-base-chinese').to(device)
     loss_function = nn.BCEWithLogitsLoss(pos_weight=pos_weight_cal)
     #loss_function = nn.BCELoss()
