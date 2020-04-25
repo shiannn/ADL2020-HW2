@@ -1,4 +1,5 @@
 import sys
+import re
 import torch
 import torch.nn as nn
 from torch.nn import Sigmoid
@@ -11,7 +12,7 @@ from transformers import BertTokenizer
 from tqdm import tqdm 
 
 BATCHSIZE = 5
-
+TOPK = 10
 
 if torch.cuda.is_available():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -30,7 +31,7 @@ def postprocessing(startTopVal, startTopIdx, endTopVal, endTopIdx):
         st = 0
         ed = 0
         while((ed < len(endingIdxs) and st < len(startIdxs))\
-        and endingIdxs[ed] <= startIdxs[st]):
+        and (endingIdxs[ed] <= startIdxs[st] or endingIdxs[ed].item()-startIdxs[st].item()>30)):
             # move st/ed
             if startVals[st] > endVals[ed]:
                 ed += 1
@@ -105,8 +106,8 @@ if __name__ == '__main__':
                 end_score = torch.where(context_mask==0, negInf, end_score) #inf
                 print(start_score)
                 print(end_score)
-                startTopVal, startTopIdx = torch.topk(start_score, 5, dim=1)
-                endTopVal, endTopIdx = torch.topk(end_score, 5, dim=1)
+                startTopVal, startTopIdx = torch.topk(start_score, TOPK, dim=1)
+                endTopVal, endTopIdx = torch.topk(end_score, TOPK, dim=1)
                 
                 ### postprocessing get (start token id) and (end token id)
                 retStEd = postprocessing(startTopVal, startTopIdx, endTopVal, endTopIdx)
@@ -132,8 +133,16 @@ if __name__ == '__main__':
                         #to_Write[questionId[i]] = "有答案"
                         ### tokenizer.convert [st:ed]
                         temp = tokenizer.convert_ids_to_tokens(X[i][st:ed])
+                        temp = list(filter(\
+                        lambda x:(x!='[UNK]')\
+                        , temp))
                         print(temp)
-                        to_Write[questionId[i]] = ''.join(temp)
+                        temp = ''.join(temp)
+                        print(temp)
+                        temp = re.sub('#', '', temp)
+                        print(temp)
+                        # Also remove the << and up <
+                        to_Write[questionId[i]] = temp
                         
                 
             json.dump(to_Write, f_predict)
