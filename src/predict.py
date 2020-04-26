@@ -46,13 +46,14 @@ def postprocessing(startTopVal, startTopIdx, endTopVal, endTopIdx):
 
 
 if __name__ == '__main__':
-    if(len(sys.argv)!=4):
-        print('usage: python3 predict.py model.pt TestingData.pkl predict.json')
+    if(len(sys.argv)!=5):
+        print('usage: python3 predict.py model.pt threshold TestingData.pkl predict.json')
         exit(0)
     
     modelName = sys.argv[1]
-    testDataName = sys.argv[2]
-    predictName = sys.argv[3]
+    threshold = float(sys.argv[2])
+    testDataName = sys.argv[3]
+    predictName = sys.argv[4]
 
     with open('../datasets/config.json') as f:
         config = json.load(f)
@@ -118,7 +119,7 @@ if __name__ == '__main__':
 
                 oneS = torch.ones(answerable_scores.shape).to(device)
                 zeroS = torch.zeros(answerable_scores.shape).to(device)
-                predictLabel = torch.where(decide>0.5,oneS,zeroS)
+                predictLabel = torch.where(decide>threshold,oneS,zeroS)
 
                 #print(answerable_scores)
                 #print(predictLabel)
@@ -140,6 +141,11 @@ if __name__ == '__main__':
                         temp = ''.join(temp)
                         print(temp)
                         temp = re.sub('#', '', temp)
+                        temp = re.sub('「', '', temp)
+                        temp = re.sub('」', '', temp)
+                        temp = re.sub('《', '', temp)
+                        temp = re.sub('》', '', temp)
+                        
                         print(temp)
                         # Also remove the << and up <
                         to_Write[questionId[i]] = temp
