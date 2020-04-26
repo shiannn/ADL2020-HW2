@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print('usage: python3 plotAnswerableThreshold.py FolderName SaveName')
+        exit(0)
 
     FoldetName = sys.argv[1]
     SaveName = sys.argv[2]
