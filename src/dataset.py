@@ -25,20 +25,26 @@ class BertDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, index):
-        return {
-            'id': self.data[index]['id'],
-            'context': self.data[index]['context'],
-            'question': self.data[index]['question'],
-            'answersId': self.data[index]['answersId'],
-            'answersText': self.data[index]['answersText'],
-            'answer_Tokens_Start': self.data[index]['answer_Tokens_Start'],
-            'answer_Tokens_End': self.data[index]['answer_Tokens_End'],
-            'answerable': self.data[index]['answerable']
+        sample = self.data[index]
+        instance = {
+            'id': sample['id'],
+            'context': sample['context'],
+            'question': sample['question']
         }
+        if 'answersText' in sample:
+            instance['answersId'] = sample['answersId']
+            instance['answersText'] = sample['answersText']
+            instance['answer_Tokens_Start'] = sample['answer_Tokens_Start']
+            instance['answer_Tokens_End'] = sample['answer_Tokens_End']
+            instance['answerable'] = sample['answerable']
+
+        return instance
     
     def collate_fn(self, samples):
         batch = {}
         for key in ['id', 'answersId', 'answersText', 'answer_Tokens_Start', 'answer_Tokens_End', 'answerable']:
+            if any(key not in sample for sample in samples):
+                continue
             batch[key] = [sample[key] for sample in samples]
 
         ### key == 'context' 'question' ###
